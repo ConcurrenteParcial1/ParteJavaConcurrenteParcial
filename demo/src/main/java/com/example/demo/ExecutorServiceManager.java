@@ -12,7 +12,7 @@ public class ExecutorServiceManager {
     }
 
     public void executeTasks() {
-        dataService.loadCSVToDatabase("demo/src/main/resources/distribucion_normal.csv", executorService);
+        dataService.loadCSVToDatabase("demo/src/main/resources/distribucion_normal.csv");
         executorService.shutdown();
     }
 }
