@@ -17,7 +17,7 @@ import java.util.concurrent.Semaphore;
 @Service
 public class ExponencialService {
     private final ExponencialRepository exponencialRepository;
-    private final ExecutorService executorService = Executors.newFixedThreadPool(5);
+    private final ExecutorService executorService = Executors.newFixedThreadPool(5, new CustomThreadFactory("pthreadpool-1"));
     private final Semaphore semaphore = new Semaphore(1);
 
     @Autowired
@@ -42,7 +42,8 @@ public class ExponencialService {
                         semaphore.acquire();
                         Exponencial exponencial = new Exponencial();
                         exponencial.setValor(Double.valueOf(conjunto[0]));
-                        saveValor(exponencial);
+                        Exponencial savedExponencial = saveValor(exponencial);
+                        System.out.println(Thread.currentThread().getName() + " - " + savedExponencial.getValor());
                         semaphore.release();
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
@@ -63,20 +64,22 @@ public class ExponencialService {
     public void printExponencial() {
         List<Exponencial> allValores = exponencialRepository.findAll();
         allValores.forEach(exponencial -> {
-            try {
-                semaphore.acquire();
-                System.out.println(Thread.currentThread().getName() + " - " + exponencial.getValor());
-                semaphore.release();
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
+            executorService.submit(() -> {
+                try {
+                    semaphore.acquire();
+                    System.out.println(Thread.currentThread().getName() + " - " + exponencial.getValor());
+                    semaphore.release();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            });
         });
     }
 
     @PostConstruct
     public void init() {
         System.out.println("Iniciando método init");
-        loadCSVToDatabase("distribucion_exponencial.csv");
+
         System.out.println("fin llenado exponencial");
     }
 }

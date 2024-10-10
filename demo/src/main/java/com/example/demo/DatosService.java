@@ -24,7 +24,7 @@ public class DatosService {
     private final Semaphore semaphore;
 
     public DatosService() {
-        this.executor = Executors.newFixedThreadPool(5);
+        this.executor = Executors.newFixedThreadPool(5, new CustomThreadFactory("pthreadpool-1"));
         this.semaphore = new Semaphore(1);
     }
 
@@ -70,20 +70,22 @@ public class DatosService {
     public void printDatos() {
         List<Datos> allValores = getAllValores();
         allValores.forEach(dato -> {
-            try {
-                semaphore.acquire();
-                System.out.println(Thread.currentThread().getName() + " - " + dato.getValue());
-                semaphore.release();
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
+            executor.submit(() -> {
+                try {
+                    semaphore.acquire();
+                    System.out.println(Thread.currentThread().getName() + " - " + dato.getValue());
+                    semaphore.release();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            });
         });
     }
 
     @PostConstruct
     public void init() {
         System.out.println("Iniciando método init");
-        loadCSVToDatabase("distribucion_normal.csv");
+
         System.out.println("fin llenado normal");
     }
 }
