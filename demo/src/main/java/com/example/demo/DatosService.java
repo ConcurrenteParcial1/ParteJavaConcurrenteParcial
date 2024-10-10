@@ -9,10 +9,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Semaphore;
+import java.util.concurrent.*;
 
 @Service
 public class DatosService {
@@ -24,7 +21,7 @@ public class DatosService {
     private final Semaphore semaphore;
 
     public DatosService() {
-        this.executor = Executors.newFixedThreadPool(5);
+        this.executor = Executors.newFixedThreadPool(5, new CustomThreadFactory("pthreadpool-1"));
         this.semaphore = new Semaphore(1);
     }
 
@@ -59,31 +56,44 @@ public class DatosService {
                 });
                 latch.await();
             }
-            System.out.println("finalizacion del llenado");
+            System.out.println("finalizacion del llenadoD");
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
-
-        executor.shutdown();
     }
 
-    public void printDatos() {
+    public Future<?> printDatos() {
         List<Datos> allValores = getAllValores();
+        CountDownLatch latch = new CountDownLatch(allValores.size());
         allValores.forEach(dato -> {
+            executor.submit(() -> {
+                try {
+                    semaphore.acquire();
+                    System.out.println(Thread.currentThread().getName() + " - " + dato.getValue());
+                    semaphore.release();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                } finally {
+                    latch.countDown();
+                }
+            });
+        });
+        return executor.submit(() -> {
             try {
-                semaphore.acquire();
-                System.out.println(Thread.currentThread().getName() + " - " + dato.getValue());
-                semaphore.release();
+                latch.await();
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
         });
     }
 
+    public void shutdownExecutor() {
+        executor.shutdown();
+    }
+
     @PostConstruct
     public void init() {
         System.out.println("Iniciando método init");
-        loadCSVToDatabase("distribucion_normal.csv");
         System.out.println("fin llenado normal");
     }
 }

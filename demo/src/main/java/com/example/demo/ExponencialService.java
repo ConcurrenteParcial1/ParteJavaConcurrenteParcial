@@ -9,20 +9,25 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Semaphore;
+import java.util.concurrent.*;
 
 @Service
 public class ExponencialService {
-    private final ExponencialRepository exponencialRepository;
-    private final ExecutorService executorService = Executors.newFixedThreadPool(5);
-    private final Semaphore semaphore = new Semaphore(1);
-
     @Autowired
-    public ExponencialService(ExponencialRepository exponencialRepository) {
-        this.exponencialRepository = exponencialRepository;
+    private ExponencialRepository exponencialRepository;
+
+    private final ExecutorService loadExecutor;
+    private final ExecutorService printExecutor;
+    private final Semaphore semaphore;
+
+    public ExponencialService() {
+        this.loadExecutor = Executors.newFixedThreadPool(5, new CustomThreadFactory("loadthreadpool-1"));
+        this.printExecutor = Executors.newFixedThreadPool(5, new CustomThreadFactory("printthreadpool-1"));
+        this.semaphore = new Semaphore(1);
+    }
+
+    public List<Exponencial> getAllValores() {
+        return exponencialRepository.findAll();
     }
 
     public Exponencial saveValor(Exponencial exponencial) {
@@ -36,8 +41,7 @@ public class ExponencialService {
         try (BufferedReader br = new BufferedReader(new InputStreamReader(new ClassPathResource(csvFile).getInputStream()))) {
             while ((line = br.readLine()) != null) {
                 String[] conjunto = line.split(cvsSplitBy);
-                CountDownLatch latch = new CountDownLatch(1);
-                executorService.submit(() -> {
+                loadExecutor.submit(() -> {
                     try {
                         semaphore.acquire();
                         Exponencial exponencial = new Exponencial();
@@ -46,37 +50,48 @@ public class ExponencialService {
                         semaphore.release();
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
-                    } finally {
-                        latch.countDown();
                     }
                 });
-                latch.await();
             }
             System.out.println("finalizacion del llenado");
-        } catch (IOException | InterruptedException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
-
-        executorService.shutdown();
     }
-
-    public void printExponencial() {
-        List<Exponencial> allValores = exponencialRepository.findAll();
+    public Future<?> printExponencial() {
+        List<Exponencial> allValores = getAllValores();
+        CountDownLatch latch = new CountDownLatch(allValores.size());
         allValores.forEach(exponencial -> {
+            printExecutor.submit(() -> {
+                try {
+                    semaphore.acquire();
+                    System.out.println(Thread.currentThread().getName() + " - " + exponencial.getValor());
+                    semaphore.release();
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                } finally {
+                    latch.countDown();
+                }
+            });
+        });
+        return printExecutor.submit(() -> {
             try {
-                semaphore.acquire();
-                System.out.println(Thread.currentThread().getName() + " - " + exponencial.getValor());
-                semaphore.release();
+                latch.await();
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
         });
     }
 
+    public void shutdownExecutor() {
+        loadExecutor.shutdown();
+        printExecutor.shutdown();
+    }
+
     @PostConstruct
     public void init() {
         System.out.println("Iniciando método init");
-        loadCSVToDatabase("distribucion_exponencial.csv");
+
         System.out.println("fin llenado exponencial");
     }
 }
