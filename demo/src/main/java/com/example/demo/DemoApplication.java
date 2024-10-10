@@ -6,18 +6,20 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class DemoApplication{
+public class DemoApplication {
 
-	private static DatosService valorDataService;
+	private static DatosService DataService;
 
 	@Autowired
-	public DemoApplication(DatosService valorDataService) {
-		DemoApplication.valorDataService = valorDataService;
+	public DemoApplication(DatosService DataService) {
+		DemoApplication.DataService = DataService;
 	}
 
 	public static void main(String[] args) {
 		SpringApplication.run(DemoApplication.class, args);
-		valorDataService.loadCSVToDatabase("demo/src/main/resources/distribucion_normal.csv");
-	}
+		DataService.loadCSVToDatabase("demo/src/main/resources/distribucion_normal.csv");
 
+		ExecutorServiceManager executorServiceManager = new ExecutorServiceManager(5, 1, DataService);
+		executorServiceManager.executeTasks();
+	}
 }
