@@ -1,25 +1,28 @@
 package com.example.demo;
 
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @SpringBootApplication
 public class DemoApplication {
 
 	private static DatosService DataService;
+	private static ExecutorService executorService;
 
 	@Autowired
 	public DemoApplication(DatosService DataService) {
 		DemoApplication.DataService = DataService;
+		DemoApplication.executorService = Executors.newFixedThreadPool(5);
 	}
 
 	public static void main(String[] args) {
 		SpringApplication.run(DemoApplication.class, args);
-		DataService.loadCSVToDatabase("demo/src/main/resources/distribucion_normal.csv");
 
-		ExecutorServiceManager executorServiceManager = new ExecutorServiceManager(5, 1, DataService);
+		ExecutorServiceManager executorServiceManager = new ExecutorServiceManager(executorService, DataService);
 		executorServiceManager.executeTasks();
 	}
 }
