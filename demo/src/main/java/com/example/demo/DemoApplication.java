@@ -30,8 +30,13 @@ public class DemoApplication implements ApplicationRunner {
 		executorService.submit(() -> {
 			datosService.loadCSVToDatabase("distribucion_normal.csv");
 			exponencialService.loadCSVToDatabase("distribucion_exponencial.csv");
+			showMenu();
 		});
 
+		executorService.shutdown();
+	}
+
+	private void showMenu() throws Exception {
 		Scanner scanner = new Scanner(System.in);
 		int opcion = 0;
 		do {
@@ -62,7 +67,5 @@ public class DemoApplication implements ApplicationRunner {
 
 		datosService.shutdownExecutor();
 		exponencialService.shutdownExecutor();
-
-		executorService.shutdown();
 	}
 }
