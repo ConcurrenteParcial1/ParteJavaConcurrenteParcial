@@ -57,8 +57,6 @@ public class ExponencialService {
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
-
-        executorService.shutdown();
     }
 
     public void printExponencial() {
@@ -74,6 +72,10 @@ public class ExponencialService {
                 }
             });
         });
+    }
+
+    public void shutdownExecutor() {
+        executorService.shutdown();
     }
 
     @PostConstruct

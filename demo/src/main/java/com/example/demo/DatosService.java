@@ -9,10 +9,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Semaphore;
+import java.util.concurrent.*;
 
 @Service
 public class DatosService {
@@ -63,12 +60,11 @@ public class DatosService {
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
-
-        executor.shutdown();
     }
 
-    public void printDatos() {
+    public Future<?> printDatos() {
         List<Datos> allValores = getAllValores();
+        CountDownLatch latch = new CountDownLatch(allValores.size());
         allValores.forEach(dato -> {
             executor.submit(() -> {
                 try {
@@ -77,9 +73,22 @@ public class DatosService {
                     semaphore.release();
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
+                } finally {
+                    latch.countDown();
                 }
             });
         });
+        return executor.submit(() -> {
+            try {
+                latch.await();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        });
+    }
+
+    public void shutdownExecutor() {
+        executor.shutdown();
     }
 
     @PostConstruct

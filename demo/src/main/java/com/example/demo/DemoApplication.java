@@ -9,6 +9,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 @SpringBootApplication
 public class DemoApplication implements ApplicationRunner {
@@ -23,7 +24,7 @@ public class DemoApplication implements ApplicationRunner {
 	}
 
 	@Override
-	public void run(ApplicationArguments args) {
+	public void run(ApplicationArguments args) throws Exception {
 		ExecutorService executorService = Executors.newSingleThreadExecutor();
 
 		executorService.submit(() -> {
@@ -39,12 +40,13 @@ public class DemoApplication implements ApplicationRunner {
 			System.out.println("2. Imprimir datos exponenciales");
 			System.out.println("3. Salir");
 			opcion = scanner.nextInt();
+			Future<?> future = null;
 			switch (opcion) {
 				case 1:
-					datosService.printDatos();
+					future = datosService.printDatos();
 					break;
 				case 2:
-					exponencialService.printExponencial();
+					future = exponencialService.printExponencial();
 					break;
 				case 3:
 					System.out.println("Saliendo...");
@@ -53,7 +55,13 @@ public class DemoApplication implements ApplicationRunner {
 					System.out.println("Opción no válida");
 					break;
 			}
+			if (future != null) {
+				future.get();
+			}
 		} while (opcion != 3);
+
+		datosService.shutdownExecutor();
+		exponencialService.shutdownExecutor();
 
 		executorService.shutdown();
 	}
