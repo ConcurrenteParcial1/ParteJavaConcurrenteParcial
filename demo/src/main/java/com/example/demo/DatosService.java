@@ -56,7 +56,7 @@ public class DatosService {
                 });
                 latch.await();
             }
-            System.out.println("finalizacion del llenado");
+            System.out.println("finalizacion del llenadoD");
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
@@ -94,7 +94,6 @@ public class DatosService {
     @PostConstruct
     public void init() {
         System.out.println("Iniciando método init");
-
         System.out.println("fin llenado normal");
     }
 }

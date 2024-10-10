@@ -16,11 +16,13 @@ public class ExponencialService {
     @Autowired
     private ExponencialRepository exponencialRepository;
 
-    private final ExecutorService executor;
+    private final ExecutorService loadExecutor;
+    private final ExecutorService printExecutor;
     private final Semaphore semaphore;
 
     public ExponencialService() {
-        this.executor = Executors.newFixedThreadPool(5, new CustomThreadFactory("pthreadpool-1"));
+        this.loadExecutor = Executors.newFixedThreadPool(5, new CustomThreadFactory("loadthreadpool-1"));
+        this.printExecutor = Executors.newFixedThreadPool(5, new CustomThreadFactory("printthreadpool-1"));
         this.semaphore = new Semaphore(1);
     }
 
@@ -39,8 +41,7 @@ public class ExponencialService {
         try (BufferedReader br = new BufferedReader(new InputStreamReader(new ClassPathResource(csvFile).getInputStream()))) {
             while ((line = br.readLine()) != null) {
                 String[] conjunto = line.split(cvsSplitBy);
-                CountDownLatch latch = new CountDownLatch(1);
-                executor.submit(() -> {
+                loadExecutor.submit(() -> {
                     try {
                         semaphore.acquire();
                         Exponencial exponencial = new Exponencial();
@@ -49,23 +50,19 @@ public class ExponencialService {
                         semaphore.release();
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
-                    } finally {
-                        latch.countDown();
                     }
                 });
-                latch.await();
             }
             System.out.println("finalizacion del llenado");
-        } catch (IOException | InterruptedException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
-
     public Future<?> printExponencial() {
         List<Exponencial> allValores = getAllValores();
         CountDownLatch latch = new CountDownLatch(allValores.size());
         allValores.forEach(exponencial -> {
-            executor.submit(() -> {
+            printExecutor.submit(() -> {
                 try {
                     semaphore.acquire();
                     System.out.println(Thread.currentThread().getName() + " - " + exponencial.getValor());
@@ -77,7 +74,7 @@ public class ExponencialService {
                 }
             });
         });
-        return executor.submit(() -> {
+        return printExecutor.submit(() -> {
             try {
                 latch.await();
             } catch (InterruptedException e) {
@@ -87,7 +84,8 @@ public class ExponencialService {
     }
 
     public void shutdownExecutor() {
-        executor.shutdown();
+        loadExecutor.shutdown();
+        printExecutor.shutdown();
     }
 
     @PostConstruct
