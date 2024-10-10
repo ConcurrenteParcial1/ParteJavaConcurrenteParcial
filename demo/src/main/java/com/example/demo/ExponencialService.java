@@ -15,25 +15,18 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 
 @Service
-public class DatosService {
+public class ExponencialService {
+    private final ExponencialRepository exponencialRepository;
+    private final ExecutorService executorService = Executors.newFixedThreadPool(5);
+    private final Semaphore semaphore = new Semaphore(1);
 
     @Autowired
-    private DatosRepository datosRepository;
-
-    private final ExecutorService executor;
-    private final Semaphore semaphore;
-
-    public DatosService() {
-        this.executor = Executors.newFixedThreadPool(5);
-        this.semaphore = new Semaphore(1);
+    public ExponencialService(ExponencialRepository exponencialRepository) {
+        this.exponencialRepository = exponencialRepository;
     }
 
-    public List<Datos> getAllValores() {
-        return datosRepository.findAll();
-    }
-
-    public Datos saveValor(Datos datos) {
-        return datosRepository.save(datos);
+    public Exponencial saveValor(Exponencial exponencial) {
+        return exponencialRepository.save(exponencial);
     }
 
     public void loadCSVToDatabase(String csvFile) {
@@ -44,12 +37,12 @@ public class DatosService {
             while ((line = br.readLine()) != null) {
                 String[] conjunto = line.split(cvsSplitBy);
                 CountDownLatch latch = new CountDownLatch(1);
-                executor.submit(() -> {
+                executorService.submit(() -> {
                     try {
                         semaphore.acquire();
-                        Datos datos = new Datos();
-                        datos.setValue(String.valueOf(conjunto[0]));
-                        saveValor(datos);
+                        Exponencial exponencial = new Exponencial();
+                        exponencial.setValor(Double.valueOf(conjunto[0]));
+                        saveValor(exponencial);
                         semaphore.release();
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
@@ -64,15 +57,15 @@ public class DatosService {
             e.printStackTrace();
         }
 
-        executor.shutdown();
+        executorService.shutdown();
     }
 
-    public void printDatos() {
-        List<Datos> allValores = getAllValores();
-        allValores.forEach(dato -> {
+    public void printExponencial() {
+        List<Exponencial> allValores = exponencialRepository.findAll();
+        allValores.forEach(exponencial -> {
             try {
                 semaphore.acquire();
-                System.out.println(Thread.currentThread().getName() + " - " + dato.getValue());
+                System.out.println(Thread.currentThread().getName() + " - " + exponencial.getValor());
                 semaphore.release();
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
@@ -83,7 +76,7 @@ public class DatosService {
     @PostConstruct
     public void init() {
         System.out.println("Iniciando método init");
-        loadCSVToDatabase("distribucion_normal.csv");
-        System.out.println("fin llenado normal");
+        loadCSVToDatabase("distribucion_exponencial.csv");
+        System.out.println("fin llenado exponencial");
     }
 }
