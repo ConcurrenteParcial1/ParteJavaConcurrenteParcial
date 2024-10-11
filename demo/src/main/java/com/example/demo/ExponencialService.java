@@ -18,12 +18,14 @@ public class ExponencialService {
 
     private final ExecutorService loadExecutor;
     private final ExecutorService printExecutor;
-    private final Semaphore semaphore;
+    private final Semaphore loadSemaphore;
+    private final Semaphore printSemaphore;
 
     public ExponencialService() {
         this.loadExecutor = Executors.newFixedThreadPool(5, new CustomThreadFactory("loadthreadpool-1"));
         this.printExecutor = Executors.newFixedThreadPool(5, new CustomThreadFactory("printthreadpool-1"));
-        this.semaphore = new Semaphore(1);
+        this.loadSemaphore = new Semaphore(1);
+        this.printSemaphore = new Semaphore(1);
     }
 
     public List<Exponencial> getAllValores() {
@@ -43,11 +45,11 @@ public class ExponencialService {
                 String[] conjunto = line.split(cvsSplitBy);
                 loadExecutor.submit(() -> {
                     try {
-                        semaphore.acquire();
+                        loadSemaphore.acquire();
                         Exponencial exponencial = new Exponencial();
                         exponencial.setValor(Double.valueOf(conjunto[0]));
                         saveValor(exponencial);
-                        semaphore.release();
+                        loadSemaphore.release();
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
                     }
@@ -65,12 +67,12 @@ public class ExponencialService {
         allValores.forEach(exponencial -> {
             printExecutor.submit(() -> {
                 try {
-                    semaphore.acquire();
+                    printSemaphore.acquire();
                     System.out.println(Thread.currentThread().getName() + " - " + exponencial.getValor());
+                    printSemaphore.release();
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 } finally {
-                    semaphore.release();
                     latch.countDown();
                 }
             });
@@ -83,6 +85,7 @@ public class ExponencialService {
             }
         });
     }
+
     public void shutdownExecutor() {
         loadExecutor.shutdown();
         printExecutor.shutdown();
