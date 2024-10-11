@@ -27,10 +27,13 @@ public class DemoApplication implements ApplicationRunner {
 	public void run(ApplicationArguments args) throws Exception {
 		ExecutorService executorService = Executors.newSingleThreadExecutor();
 
-		executorService.submit(() -> {
+		Future<?> loadFuture = executorService.submit(() -> {
 			datosService.loadCSVToDatabase("distribucion_normal.csv");
 			exponencialService.loadCSVToDatabase("distribucion_exponencial.csv");
 		});
+
+		// Wait for the data loading to complete before proceeding
+		loadFuture.get();
 
 		Scanner scanner = new Scanner(System.in);
 		int opcion = 0;
