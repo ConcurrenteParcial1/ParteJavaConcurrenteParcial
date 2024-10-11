@@ -40,13 +40,13 @@ public class DemoApplication implements ApplicationRunner {
 			System.out.println("2. Imprimir datos exponenciales");
 			System.out.println("3. Salir");
 			opcion = scanner.nextInt();
-			Future<?> future = null;
+			ServiceFactory serviceFactory = null;
 			switch (opcion) {
 				case 1:
-					future = datosService.printDatos();
+					serviceFactory = new DatosServiceFactory(datosService);
 					break;
 				case 2:
-					future = exponencialService.printExponencial();
+					serviceFactory = new ExponencialServiceFactory(exponencialService);
 					break;
 				case 3:
 					System.out.println("Saliendo...");
@@ -55,8 +55,9 @@ public class DemoApplication implements ApplicationRunner {
 					System.out.println("Opción no válida");
 					break;
 			}
-			if (future != null) {
-				future.get();
+			if (serviceFactory != null) {
+				Future<?> printFuture = executorService.submit(serviceFactory.getService());
+				printFuture.get(); // Espera a que se complete la tarea de impresión
 			}
 		} while (opcion != 3);
 
