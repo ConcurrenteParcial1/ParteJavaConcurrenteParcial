@@ -58,6 +58,7 @@ public class ExponencialService {
             e.printStackTrace();
         }
     }
+
     public Future<?> printExponencial() {
         List<Exponencial> allValores = getAllValores();
         CountDownLatch latch = new CountDownLatch(allValores.size());
@@ -66,10 +67,10 @@ public class ExponencialService {
                 try {
                     semaphore.acquire();
                     System.out.println(Thread.currentThread().getName() + " - " + exponencial.getValor());
-                    semaphore.release();
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 } finally {
+                    semaphore.release();
                     latch.countDown();
                 }
             });
@@ -82,7 +83,6 @@ public class ExponencialService {
             }
         });
     }
-
     public void shutdownExecutor() {
         loadExecutor.shutdown();
         printExecutor.shutdown();
@@ -91,7 +91,6 @@ public class ExponencialService {
     @PostConstruct
     public void init() {
         System.out.println("Iniciando método init");
-
         System.out.println("fin llenado exponencial");
     }
 }

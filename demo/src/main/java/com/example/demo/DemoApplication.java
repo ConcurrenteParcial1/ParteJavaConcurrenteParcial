@@ -32,9 +32,6 @@ public class DemoApplication implements ApplicationRunner {
 			exponencialService.loadCSVToDatabase("distribucion_exponencial.csv");
 		});
 
-		// Wait for the data loading to complete before proceeding
-		loadFuture.get();
-
 		Scanner scanner = new Scanner(System.in);
 		int opcion = 0;
 		do {
