@@ -11,16 +11,22 @@ import java.io.InputStreamReader;
 import java.util.List;
 import java.util.concurrent.*;
 
+// La anotación @Service indica que esta clase es un componente de servicio en Spring.
 @Service
 public class ExponencialService {
+    // La anotación @Autowired se utiliza para la inyección automática de dependencias en Spring.
+    // En este caso, se inyecta una instancia de ExponencialRepository.
     @Autowired
     private ExponencialRepository exponencialRepository;
 
+    // ExecutorService para manejar tareas en hilos separados.
     private final ExecutorService loadExecutor;
     private final ExecutorService printExecutor;
+    // Semaphore para controlar el acceso a ciertos recursos.
     private final Semaphore loadSemaphore;
     private final Semaphore printSemaphore;
 
+    // Constructor de la clase.
     public ExponencialService() {
         this.loadExecutor = Executors.newFixedThreadPool(5, new CustomThreadFactory("loadthreadpool-1"));
         this.printExecutor = Executors.newFixedThreadPool(5, new CustomThreadFactory("printthreadpool-1"));
@@ -28,14 +34,17 @@ public class ExponencialService {
         this.printSemaphore = new Semaphore(1);
     }
 
+    // Método para obtener todos los valores de Exponencial.
     public List<Exponencial> getAllValores() {
         return exponencialRepository.findAll();
     }
 
+    // Método para guardar un valor de Exponencial.
     public Exponencial saveValor(Exponencial exponencial) {
         return exponencialRepository.save(exponencial);
     }
 
+    // Método para cargar datos desde un archivo CSV a la base de datos.
     public void loadCSVToDatabase(String csvFile) {
         String line;
         String cvsSplitBy = ",";
@@ -61,6 +70,7 @@ public class ExponencialService {
         }
     }
 
+    // Método para imprimir los datos.
     public Future<?> printExponencial() {
         List<Exponencial> allValores = getAllValores();
         CountDownLatch latch = new CountDownLatch(allValores.size());
@@ -86,11 +96,14 @@ public class ExponencialService {
         });
     }
 
+    // Método para cerrar el ExecutorService.
     public void shutdownExecutor() {
         loadExecutor.shutdown();
         printExecutor.shutdown();
     }
 
+    // Método que se ejecuta después de la inicialización del bean.
+    // La anotación @PostConstruct indica que este método se debe ejecutar después de la inicialización del bean.
     @PostConstruct
     public void init() {
         System.out.println("Iniciando método init");

@@ -10,28 +10,37 @@ import java.io.InputStreamReader;
 import java.util.List;
 import java.util.concurrent.*;
 
+// La anotación @Service indica que esta clase es un componente de servicio en Spring.
 @Service
 public class DatosService {
 
+    // La anotación @Autowired se utiliza para la inyección automática de dependencias en Spring.
+    // En este caso, se inyecta una instancia de DatosRepository.
     @Autowired
     private DatosRepository datosRepository;
 
+    // ExecutorService para manejar tareas en hilos separados.
     private final ExecutorService executor;
+    // Semaphore para controlar el acceso a ciertos recursos.
     private final Semaphore semaphore;
 
+    // Constructor de la clase.
     public DatosService() {
         this.executor = Executors.newFixedThreadPool(5, new CustomThreadFactory("pthreadpool-1"));
         this.semaphore = new Semaphore(1);
     }
 
+    // Método para obtener todos los valores de Datos.
     public List<Datos> getAllValores() {
         return datosRepository.findAll();
     }
 
+    // Método para guardar un valor de Datos.
     public Datos saveValor(Datos datos) {
         return datosRepository.save(datos);
     }
 
+    // Método para cargar datos desde un archivo CSV a la base de datos.
     public void loadCSVToDatabase(String csvFile) {
         String line;
         String cvsSplitBy = ",";
@@ -61,6 +70,7 @@ public class DatosService {
         }
     }
 
+    // Método para imprimir los datos.
     public Future<?> printDatos() {
         List<Datos> allValores = getAllValores();
         CountDownLatch latch = new CountDownLatch(allValores.size());
@@ -86,10 +96,13 @@ public class DatosService {
         });
     }
 
+    // Método para cerrar el ExecutorService.
     public void shutdownExecutor() {
         executor.shutdown();
     }
 
+    // Método que se ejecuta después de la inicialización del bean.
+    // La anotación @PostConstruct indica que este método se debe ejecutar después de la inicialización del bean.
     @PostConstruct
     public void init() {
         System.out.println("Iniciando método init");
