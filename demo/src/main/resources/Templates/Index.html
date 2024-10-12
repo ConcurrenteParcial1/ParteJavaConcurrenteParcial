@@ -22,40 +22,42 @@
     const width = 3000;
     const height = 1080;
     const numRows = 10;
-    const numCols = numRows + 1;
+    const numCols = 5; // 5 columnas
     const pinRadius = 5;
     const ballRadius = 5;
-    const margin = 10;
+    const numBalls = 200;
+    const margin = 5;
     const svg = d3.select("svg");
 
-    // Crear pines
+    // Crear pines en forma triangular
+    const pinPositions = [];
     for (let row = 0; row < numRows; row++) {
+        const rowPins = [];
         for (let col = 0; col <= row; col++) {
+            const pinX = width / 2 + (col - row / 2) * 40;  // Centrando los pines
+            const pinY = 50 + row * 40;
+            rowPins.push({ x: pinX, y: pinY });
+
             svg.append("circle")
                 .attr("class", "pin")
-                .attr("cx", width / 2 + (col - row / 2) * 40)
-                .attr("cy", 50 + row * 40)
+                .attr("cx", pinX)
+                .attr("cy", pinY)
                 .attr("r", pinRadius);
         }
+        pinPositions.push(rowPins);
     }
 
-    // Crear columnas
+    // Crear columnas para recoger las bolas
     const columns = Array(numCols).fill(0);
-    const columnWidth = width / numCols;
+    const columnWidth = 100;
 
-    // Obtener datos de la base de datos
-    fetch('/datos')
-        .then(response => response.json())
-        .then(data => {
-            const ballsData = data.map(d => parseFloat(d.value)); // Adaptar los datos como se necesite
-            simulateBalls(ballsData);
-        })
-        .catch(error => console.error('Error fetching data:', error));
+    // Calcular el centro para alinear correctamente las columnas bajo los pines
+    const startX = width / 2 - ((numCols - 1) * columnWidth) / 2;
 
     // Simular caída de bolas
-    function simulateBalls(ballsData) {
-        ballsData.forEach((ballValue, i) => {
-            let col = 0;
+    function dropBalls() {
+        for (let i = 0; i < 5; i++) {
+            let col = Math.floor(numCols / 2);  // Empezar en el centro
             let x = width / 2;
             let y = 0;
             const ball = svg.append("circle")
@@ -66,19 +68,38 @@
 
             for (let row = 0; row < numRows; row++) {
                 setTimeout(() => {
-                    col += ballValue < 0.5 ? 0 : 1; // Aquí usas el valor de la base de datos
-                    x = width / 2 + (col - row / 2) * 40;
-                    y = 50 + row * 40;
-                    ball.attr("cx", x).attr("cy", y);
-                }, row * 100);
+                    // Simular caída con probabilidad de 50% a izquierda o derecha
+                    if (Math.random() < 0.5) {
+                        col++;  // Mover a la derecha
+                    } else {
+                        col--;  // Mover a la izquierda
+                    }
+
+                    // Asegurar que la bola no salga del tablero
+                    col = Math.max(0, Math.min(col, numCols - 1));
+
+                    // Actualizar posición de la bola usando la posición del pin correspondiente
+                    const pin = pinPositions[row][Math.max(0, Math.min(col, pinPositions[row].length - 1))];
+
+                    ball.transition()
+                        .duration(300)
+                        .ease(d3.easeBounce)
+                        .attr("cx", pin.x)
+                        .attr("cy", pin.y);
+                }, row * 300);
             }
 
             setTimeout(() => {
                 columns[col]++;
                 updateColumns();
-                ball.remove();
-            }, numRows * 100);
-        });
+                ball.transition()
+                    .duration(700)
+                    .ease(d3.easeBounceOut)
+                    .attr("cx", startX + col * columnWidth + columnWidth / 2) // Alinear caída con columnas centradas
+                    .attr("cy", height - columns[col] * 10 - margin - 50)
+                    .on("end", () => ball.remove());
+            }, numRows * 300);
+        }
     }
 
     // Actualizar visualización de columnas
@@ -90,13 +111,20 @@
             .append("rect")
             .attr("class", "column")
             .merge(columnSelection)
-            .attr("x", (d, i) => i * columnWidth + columnWidth / 8)
-            .attr("y", d => height - d * 2 - margin - 50)
-            .attr("width", columnWidth / 1.5)
-            .attr("height", d => d * 2);
+            .attr("x", (d, i) => startX + i * columnWidth)  // Posición centrada
+            .attr("y", d => height - d * 10 - margin - 50)
+            .attr("width", columnWidth - 10)
+            .attr("height", d => d * 10);
 
         columnSelection.exit().remove();
     }
+
+    // Soltar bolas a intervalos regulares
+    d3.interval(() => {
+        if (d3.sum(columns) < numBalls) {
+            dropBalls();
+        }
+    }, 2000);
 </script>
 </body>
 </html>
