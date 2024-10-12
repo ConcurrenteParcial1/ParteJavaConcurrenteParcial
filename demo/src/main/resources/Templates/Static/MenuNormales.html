@@ -14,9 +14,15 @@
         .column {
             fill: darkred;
         }
+        #startButton {
+            margin: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+        }
     </style>
 </head>
 <body>
+<button id="startButton">Iniciar Caída de Bolitas</button>
 <svg width="3000" height="1080"></svg>
 <script>
     const width = 3000;
@@ -29,25 +35,18 @@
     const margin = 5;
     const svg = d3.select("svg");
 
-    // Crear pines en forma triangular
-    const pinPositions = [];
+    // Crear pines
     for (let row = 0; row < numRows; row++) {
-        const rowPins = [];
         for (let col = 0; col <= row; col++) {
-            const pinX = width / 2 + (col - row / 2) * 40;  // Centrando los pines
-            const pinY = 50 + row * 40;
-            rowPins.push({ x: pinX, y: pinY });
-
             svg.append("circle")
                 .attr("class", "pin")
-                .attr("cx", pinX)
-                .attr("cy", pinY)
+                .attr("cx", width / 2 + (col - row / 2) * 40)  // Centrando los pines
+                .attr("cy", 50 + row * 40)
                 .attr("r", pinRadius);
         }
-        pinPositions.push(rowPins);
     }
 
-    // Crear columnas para recoger las bolas
+    // Crear columnas
     const columns = Array(numCols).fill(0);
     const columnWidth = 100;
 
@@ -57,7 +56,7 @@
     // Simular caída de bolas
     function dropBalls() {
         for (let i = 0; i < 5; i++) {
-            let col = Math.floor(numCols / 2);  // Empezar en el centro
+            let col = 0;
             let x = width / 2;
             let y = 0;
             const ball = svg.append("circle")
@@ -69,23 +68,17 @@
             for (let row = 0; row < numRows; row++) {
                 setTimeout(() => {
                     // Simular caída con probabilidad de 50% a izquierda o derecha
-                    if (Math.random() < 0.5) {
-                        col++;  // Mover a la derecha
-                    } else {
-                        col--;  // Mover a la izquierda
-                    }
+                    col += Math.random() < 0.5 ? -1 : 1;
+                    col = Math.max(0, Math.min(col, numCols - 1));  // Limitar col entre 0 y numCols-1
 
-                    // Asegurar que la bola no salga del tablero
-                    col = Math.max(0, Math.min(col, numCols - 1));
-
-                    // Actualizar posición de la bola usando la posición del pin correspondiente
-                    const pin = pinPositions[row][Math.max(0, Math.min(col, pinPositions[row].length - 1))];
+                    x = width / 2 + (col - row / 2) * 40; // Coordenada x para las bolas
+                    y = 50 + row * 40; // Coordenada y
 
                     ball.transition()
                         .duration(300)
                         .ease(d3.easeBounce)
-                        .attr("cx", pin.x)
-                        .attr("cy", pin.y);
+                        .attr("cx", x)
+                        .attr("cy", y);
                 }, row * 300);
             }
 
@@ -119,12 +112,14 @@
         columnSelection.exit().remove();
     }
 
-    // Soltar bolas a intervalos regulares
-    d3.interval(() => {
-        if (d3.sum(columns) < numBalls) {
-            dropBalls();
-        }
-    }, 2000);
+    // Añadir evento al botón para iniciar la caída de bolitas
+    document.getElementById("startButton").addEventListener("click", () => {
+        d3.interval(() => {
+            if (d3.sum(columns) < numBalls) {
+                dropBalls();
+            }
+        }, 2000);
+    });
 </script>
 </body>
 </html>

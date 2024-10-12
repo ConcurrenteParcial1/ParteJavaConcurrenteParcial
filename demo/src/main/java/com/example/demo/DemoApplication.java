@@ -25,13 +25,16 @@ public class DemoApplication implements ApplicationRunner {
 
 	@Override
 	public void run(ApplicationArguments args) throws Exception {
-		ExecutorService executorService = Executors.newSingleThreadExecutor();
+		// Cambiamos a un pool de hilos más dinámico para manejar mejor la concurrencia.
+		ExecutorService executorService = Executors.newCachedThreadPool();
 
+		// Futuro para cargar los datos desde el CSV.
 		Future<?> loadFuture = executorService.submit(() -> {
 			datosService.loadCSVToDatabase("distribucion_normal.csv");
 			exponencialService.loadCSVToDatabase("distribucion_exponencial.csv");
 		});
 
+		// Creamos el menú interactivo.
 		Scanner scanner = new Scanner(System.in);
 		int opcion = 0;
 		do {
@@ -43,9 +46,11 @@ public class DemoApplication implements ApplicationRunner {
 			Future<?> future = null;
 			switch (opcion) {
 				case 1:
+					// Imprimimos los datos normales y simulamos las bolas.
 					future = datosService.printDatos();
 					break;
 				case 2:
+					// Imprimimos los datos exponenciales.
 					future = exponencialService.printExponencial();
 					break;
 				case 3:
@@ -56,10 +61,11 @@ public class DemoApplication implements ApplicationRunner {
 					break;
 			}
 			if (future != null) {
-				future.get();
+				future.get(); // Esperamos a que el hilo termine antes de seguir.
 			}
 		} while (opcion != 3);
 
+		// Apagamos los servicios al final.
 		datosService.shutdownExecutor();
 		exponencialService.shutdownExecutor();
 		executorService.shutdown();
