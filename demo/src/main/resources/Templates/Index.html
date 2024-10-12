@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Tablero de Galton</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        .pin {
+            fill: steelblue;
+        }
+        .ball {
+            fill: red;
+        }
+        .column {
+            fill: darkred;
+        }
+    </style>
+</head>
+<body>
+<svg width="3000" height="1080"></svg>
+<script>
+    const width = 3000;
+    const height = 1080;
+    const numRows = 10;
+    const numCols = numRows + 1;
+    const pinRadius = 5;
+    const ballRadius = 5;
+    const margin = 10;
+    const svg = d3.select("svg");
+
+    // Crear pines
+    for (let row = 0; row < numRows; row++) {
+        for (let col = 0; col <= row; col++) {
+            svg.append("circle")
+                .attr("class", "pin")
+                .attr("cx", width / 2 + (col - row / 2) * 40)
+                .attr("cy", 50 + row * 40)
+                .attr("r", pinRadius);
+        }
+    }
+
+    // Crear columnas
+    const columns = Array(numCols).fill(0);
+    const columnWidth = width / numCols;
+
+    // Obtener datos de la base de datos
+    fetch('/datos')
+        .then(response => response.json())
+        .then(data => {
+            const ballsData = data.map(d => parseFloat(d.value)); // Adaptar los datos como se necesite
+            simulateBalls(ballsData);
+        })
+        .catch(error => console.error('Error fetching data:', error));
+
+    // Simular caída de bolas
+    function simulateBalls(ballsData) {
+        ballsData.forEach((ballValue, i) => {
+            let col = 0;
+            let x = width / 2;
+            let y = 0;
+            const ball = svg.append("circle")
+                .attr("class", "ball")
+                .attr("cx", x)
+                .attr("cy", y)
+                .attr("r", ballRadius);
+
+            for (let row = 0; row < numRows; row++) {
+                setTimeout(() => {
+                    col += ballValue < 0.5 ? 0 : 1; // Aquí usas el valor de la base de datos
+                    x = width / 2 + (col - row / 2) * 40;
+                    y = 50 + row * 40;
+                    ball.attr("cx", x).attr("cy", y);
+                }, row * 100);
+            }
+
+            setTimeout(() => {
+                columns[col]++;
+                updateColumns();
+                ball.remove();
+            }, numRows * 100);
+        });
+    }
+
+    // Actualizar visualización de columnas
+    function updateColumns() {
+        const columnSelection = svg.selectAll(".column")
+            .data(columns);
+
+        columnSelection.enter()
+            .append("rect")
+            .attr("class", "column")
+            .merge(columnSelection)
+            .attr("x", (d, i) => i * columnWidth + columnWidth / 8)
+            .attr("y", d => height - d * 2 - margin - 50)
+            .attr("width", columnWidth / 1.5)
+            .attr("height", d => d * 2);
+
+        columnSelection.exit().remove();
+    }
+</script>
+</body>
+</html>
