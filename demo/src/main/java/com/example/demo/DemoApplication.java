@@ -6,6 +6,9 @@ import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+import java.awt.*;
+import java.io.IOException;
+import java.net.URI;
 import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -25,6 +28,11 @@ public class DemoApplication implements ApplicationRunner {
 
 	@Override
 	public void run(ApplicationArguments args) throws Exception {
+		datosService.loadCSVToDatabase("src/main/resources/distribucion_normal.csv");
+		exponencialService.loadCSVToDatabase("src/main/resources/distribucion_exponencial.csv");
+		openBrowser("http://localhost:8080/MenuPrincipal.html");
+
+
 		// Cambiamos a un pool de hilos más dinámico para manejar mejor la concurrencia.
 		ExecutorService executorService = Executors.newCachedThreadPool();
 
@@ -69,5 +77,23 @@ public class DemoApplication implements ApplicationRunner {
 		datosService.shutdownExecutor();
 		exponencialService.shutdownExecutor();
 		executorService.shutdown();
+	}
+		private void openBrowser(String url) {
+		String os = System.getProperty("os.name").toLowerCase();
+		Runtime runtime = Runtime.getRuntime();
+
+		try {
+			if (os.contains("win")) {
+			runtime.exec("rundll32 url.dll,FileProtocolHandler " + url);
+			} else if (os.contains("mac")) {
+			runtime.exec("open " + url);
+			} else if (os.contains("nix") || os.contains("nux")) {
+			runtime.exec("xdg-open " + url);
+			} else {
+			System.err.println("Unsupported OS. Please open the following URL manually: " + url);
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 }
