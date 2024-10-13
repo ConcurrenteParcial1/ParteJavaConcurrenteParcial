@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Imprimir Datos</title>
+    <script>
+        function imprimirDatos() {
+            fetch('/print-datos')
+                .then(response => response.text())
+                .then(data => {
+                    alert(data);  // Muestra el mensaje que viene del backend
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Ocurrió un error al imprimir los datos normales.');
+                });
+        }
+
+        function imprimirExponenciales() {
+            fetch('/print-exponenciales')
+                .then(response => response.text())
+                .then(data => {
+                    alert(data);  // Muestra el mensaje que viene del backend
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Ocurrió un error al imprimir los datos exponenciales.');
+                });
+        }
+    </script>
+</head>
+<body>
+<h1>Imprimir Datos desde la Base de Datos</h1>
+<button onclick="imprimirDatos()">Imprimir Datos Normales</button>
+<button onclick="imprimirExponenciales()">Imprimir Datos Exponenciales</button>
+</body>
+</html>

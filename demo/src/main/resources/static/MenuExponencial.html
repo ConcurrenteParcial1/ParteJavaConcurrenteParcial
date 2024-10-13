@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Tablero de Galton - Distribución Exponencial</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        .pin {
+            fill: steelblue;
+        }
+        .ball {
+            fill: red;
+        }
+        .column {
+            fill: darkred;
+        }
+        #startButton {
+            margin: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+<button id="startButton">Distribucion Exponencial</button>
+<svg width="3000" height="1080"></svg>
+<script>
+    const width = 3000;
+    const height = 1080;
+    const numRows = 10;
+    const numCols = 5; // 5 columnas
+    const pinRadius = 5;
+    const ballRadius = 5;
+    const numBalls = 200;
+    const margin = 5;
+    const svg = d3.select("svg");
+
+    // Crear pines
+    for (let row = 0; row < numRows; row++) {
+        for (let col = 0; col <= row; col++) {
+            svg.append("circle")
+                .attr("class", "pin")
+                .attr("cx", width / 2 + (col - row / 2) * 40)  // Centrando los pines
+                .attr("cy", 50 + row * 40)
+                .attr("r", pinRadius);
+        }
+    }
+
+    // Crear columnas
+    const columns = Array(numCols).fill(0);
+    const columnWidth = 100;
+
+    const startX = width / 2 - ((numCols - 1) * columnWidth) / 2;
+
+    // Función de probabilidad exponencial para sesgar la caída hacia la derecha
+    function exponentialRandom(lambda = 0.5) {
+        return -Math.log(1 - Math.random()) / lambda;
+    }
+
+    // Simular caída de bolas
+    function dropBalls() {
+        for (let i = 0; i < 5; i++) {
+            let col = 0;
+            let x = width / 2;
+            let y = 0;
+            const ball = svg.append("circle")
+                .attr("class", "ball")
+                .attr("cx", x)
+                .attr("cy", y)
+                .attr("r", ballRadius);
+
+            for (let row = 0; row < numRows; row++) {
+                setTimeout(() => {
+                    if (exponentialRandom() > 0.5) {
+                        col += 1;  // Desviar hacia la derecha
+                    } else {
+                        col -= 1;  // Desviar hacia la izquierda
+                    }
+
+                    col = Math.max(0, Math.min(col, numCols - 1));
+
+                    x = width / 2 + (col - row / 2) * 40;
+                    y = 50 + row * 40;
+
+                    ball.transition()
+                        .duration(300)
+                        .ease(d3.easeBounce)
+                        .attr("cx", x)
+                        .attr("cy", y);
+                }, row * 300);
+            }
+
+            setTimeout(() => {
+                columns[col]++;
+                updateColumns();
+                ball.transition()
+                    .duration(700)
+                    .ease(d3.easeBounceOut)
+                    .attr("cx", startX + col * columnWidth + columnWidth / 2)
+                    .attr("cy", height - columns[col] * 10 - margin - 50)
+                    .on("end", () => ball.remove());
+            }, numRows * 300);
+        }
+    }
+
+    function updateColumns() {
+        const columnSelection = svg.selectAll(".column")
+            .data(columns);
+
+        columnSelection.enter()
+            .append("rect")
+            .attr("class", "column")
+            .merge(columnSelection)
+            .attr("x", (d, i) => startX + i * columnWidth)
+            .attr("y", d => height - d * 10 - margin - 50)
+            .attr("width", columnWidth - 10)
+            .attr("height", d => d * 10);
+
+        columnSelection.exit().remove();
+    }
+
+    // Función para imprimir los datos exponenciales
+    function imprimirDatosExponenciales() {
+        fetch('/print-exponenciales')
+            .then(response => response.text())
+            .then(data => {
+                alert(data);  // Muestra el mensaje del backend
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Ocurrió un error al imprimir los datos exponenciales.');
+            });
+    }
+
+    // Añadir evento al botón para iniciar la caída de bolitas y también imprimir los datos exponenciales
+    document.getElementById("startButton").addEventListener("click", () => {
+        d3.interval(() => {
+            if (d3.sum(columns) < numBalls) {
+                dropBalls();
+            }
+        }, 2000);
+
+        // Llamar a la función para imprimir los datos exponenciales
+        imprimirDatosExponenciales();
+    });
+</script>
+</body>
+</html>
