@@ -1,5 +1,8 @@
 https://github.com/ffernandoss/ParteJavaConcurrenteParcial.git
 
+Hecho por Fernando Santamaria y Jose Antonio Oyono
+
+en la parte de font para ver la campana de gauss hay que mover la pantalla un poco a derecha, abajo se ve como van cayendo 
 # Código
 
 El código está compuesto por las siguientes clases:
