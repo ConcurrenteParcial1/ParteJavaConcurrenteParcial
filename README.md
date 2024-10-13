@@ -33,13 +33,19 @@ Se encarga de que se puedan realizar las operaciones de CRUD en la base de datos
 Se encarga de que se puedan realizar las operaciones de CRUD en la base de datos de la entidad `Exponencial`. Esta entidad extiende de `JpaRepository`.
 
 ## DatosService
-(Descripción pendiente)
+`DatosService` es una clase de servicio en la aplicación que maneja operaciones relacionadas con los datos. Sus principales funciones incluyen:
+- **getAllValores()**: Obtiene todos los valores de la entidad `Datos`.
+- **saveValor(Datos datos)**: Guarda un valor de la entidad `Datos`.
+- **loadCSVToDatabase(String csvFile)**: Carga datos desde un archivo CSV a la base de datos.
+- **printDatos()**: Imprime los datos almacenados en la base de datos.
+- **shutdownExecutor()**: Apaga el `ExecutorService` utilizado para manejar tareas en hilos separados.
 
 ## DatosWebSocketHandler
 (Descripción pendiente)
 
 ## DemoApplication 
-(Descripción pendiente)
+`DemoApplication` es la clase principal de la aplicación Spring Boot. Sus principales funciones incluyen:
+- **main(String[] args)**: Método principal que inicia la aplicación Spring Boot.
 
 ## Exponencial
 Esta clase es la entidad en la que se guardarán los datos de la exponencial en MySQL. Está compuesta por las anotaciones `@Entity`, `@Data`, `@Table`, `@Id`, `@GeneratedValue`, `@Column`. En este caso, la entidad se llama `exponencial`, tiene un atributo principal que es el `Id`, el cual tiene la misma función que en la otra entidad, y en esta entidad el otro atributo en vez de `value`, es `valor`. En este caso no se hace uso de los getters y setters.
@@ -48,12 +54,15 @@ Esta clase es la entidad en la que se guardarán los datos de la exponencial en 
 Se encarga de gestionar las peticiones que se realizarán a la entidad `exponencial`. Utiliza las anotaciones `@RestController`, `@RequestMapping`, `@Autowired`, `@PostMapping`, `@RequestBody`. Tiene un atributo de tipo `ExponencialService`, también tiene un constructor que recibe un objeto de tipo `exponencialService` y un método de tipo `Exponencial` el cual se encarga de guardar los valores. Recibe un objeto de tipo `Exponencial`.
 
 ## ExponencialService
-(Descripción pendiente)
+`ExponencialService` es una clase de servicio en la aplicación que maneja operaciones relacionadas con datos exponenciales. Sus principales funciones incluyen:
+- **printExponencial()**: Imprime los datos exponenciales.
+- **shutdownExecutor()**: Apaga el `ExecutorService` utilizado para manejar tareas en hilos separados.
 
 ## MenuController
-(Descripción pendiente)
+`MenuController` es una clase de controlador en la aplicación que maneja las solicitudes HTTP relacionadas con el menú principal. Sus principales funciones incluyen:
+- **showMenu()**: Muestra la página del menú principal.
 
-# Front
+# Frontend
 ## Descripción de las Páginas HTML
 
 A continuación se describen los detalles de las páginas HTML que forman parte de este proyecto:
