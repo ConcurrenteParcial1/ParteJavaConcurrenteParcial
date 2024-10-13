@@ -6,8 +6,6 @@ https://github.com/ffernandoss/ParteJavaConcurrenteParcial.git
 -[] realizar issues
 -[] ver si datos web socket handler se usa o no
 -[] escribir main
--[] borrar executor
--[] borrar ExecutorServiceManager
 -[] ver si MenuController se usa o no
 -
 
@@ -33,7 +31,10 @@ Se encarga de que se puedan realizar las operaciones de CRUD en la base de datos
 Se encarga de que se puedan realizar las operaciones de CRUD en la base de datos de la entidad `Exponencial`. Esta entidad extiende de `JpaRepository`.
 
 ## DatosService
-(Descripción pendiente)
+Esta clase se encarga de toda la logica de los datos de la normal, ya sea guardarlos en el csv e imprimirlos en la termina, utiliza las anotaciones de @Service, @Autowired y @PostCOnstruct.
+Hace uso de un objeto de tipo ExecutorService y un semaforo.
+Tiene un constructor donde crea un semaforo de tamaño 1 y una nueva pool de hilos de tamaño 5.
+Tiene una Lista donde se guardan los valores, un metodo de tipo Datos para guardar un valor el cual recibe un objeto de tipo Dato, tambien hay un metodo que se guarda de guardar los datos del csv en la base de datos, este metodo recibe un string (el csv), luego se divide el csv, se usa un countDownLatch de tamaño 1, luego un hiloo adquiere el semaforo, coge el valor, lo imprime y abandona el semaforo
 
 ## DatosWebSocketHandler
 (Descripción pendiente)
