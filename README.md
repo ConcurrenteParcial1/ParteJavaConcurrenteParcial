@@ -3,8 +3,6 @@ https://github.com/ffernandoss/ParteJavaConcurrenteParcial.git
 -[] Dividir por paquetes
 -[] ver si datos web socket handler se usa o no
 -[] escribir main
--[] borrar executor
--[] borrar ExecutorServiceManager
 -[] ver si MenuController se usa o no
 -
 
