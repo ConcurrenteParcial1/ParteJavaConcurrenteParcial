@@ -1,9 +1,6 @@
 https://github.com/ffernandoss/ParteJavaConcurrenteParcial.git
 ## TODO
 -[] Dividir por paquetes
--[] escribir la clase DatosService
--[] escribir la clase ExponencialService
--[] realizar issues
 -[] ver si datos web socket handler se usa o no
 -[] escribir main
 -[] borrar executor
