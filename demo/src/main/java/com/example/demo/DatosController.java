@@ -3,7 +3,7 @@ package com.example.demo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.util.concurrent.Future;
 
 @RestController
 @RequestMapping("/datos")
@@ -11,20 +11,27 @@ public class DatosController {
 
     @Autowired
     private DatosService datosService;
+    @Autowired
+    private ExponencialService exponencialService;
 
-    // Método para obtener los datos y enviarlos al cliente (para D3.js)
-    @GetMapping("/caida")
-    public List<Datos> getDatosParaCaida() {
-        return datosService.getAllValores();
+    @PostMapping("/printDatos")
+    public String printDatos() throws Exception {
+        Future<?> future = datosService.printDatos();
+        future.get(); // Esperamos a que el hilo termine antes de seguir.
+        return "Datos normales impresos";
     }
 
-    @GetMapping
-    public List<Datos> getAllValores() {
-        return datosService.getAllValores();
+    @PostMapping("/printExponencial")
+    public String printExponencial() throws Exception {
+        Future<?> future = exponencialService.printExponencial();
+        future.get(); // Esperamos a que el hilo termine antes de seguir.
+        return "Datos exponenciales impresos";
     }
 
-    @PostMapping
-    public Datos saveValor(@RequestBody Datos datos) {
-        return datosService.saveValor(datos);
+    @PostMapping("/shutdown")
+    public String shutdown() {
+        datosService.shutdownExecutor();
+        exponencialService.shutdownExecutor();
+        return "Servicios apagados";
     }
 }

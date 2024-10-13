@@ -22,7 +22,7 @@
     </style>
 </head>
 <body>
-<button id="startButton">Iniciar Caída de Bolitas</button>
+<button id="startButton">Distribucion Exponencial</button>
 <svg width="3000" height="1080"></svg>
 <script>
     const width = 3000;
@@ -50,7 +50,6 @@
     const columns = Array(numCols).fill(0);
     const columnWidth = 100;
 
-    // Calcular el centro para alinear correctamente las columnas bajo los pines
     const startX = width / 2 - ((numCols - 1) * columnWidth) / 2;
 
     // Función de probabilidad exponencial para sesgar la caída hacia la derecha
@@ -72,18 +71,16 @@
 
             for (let row = 0; row < numRows; row++) {
                 setTimeout(() => {
-                    // Simular caída con distribución exponencial, sesgada hacia la derecha
                     if (exponentialRandom() > 0.5) {
                         col += 1;  // Desviar hacia la derecha
                     } else {
                         col -= 1;  // Desviar hacia la izquierda
                     }
 
-                    // Limitar col para que no se salga del tablero
                     col = Math.max(0, Math.min(col, numCols - 1));
 
-                    x = width / 2 + (col - row / 2) * 40; // Coordenada x para las bolas
-                    y = 50 + row * 40; // Coordenada y
+                    x = width / 2 + (col - row / 2) * 40;
+                    y = 50 + row * 40;
 
                     ball.transition()
                         .duration(300)
@@ -99,14 +96,13 @@
                 ball.transition()
                     .duration(700)
                     .ease(d3.easeBounceOut)
-                    .attr("cx", startX + col * columnWidth + columnWidth / 2) // Alinear caída con columnas centradas
+                    .attr("cx", startX + col * columnWidth + columnWidth / 2)
                     .attr("cy", height - columns[col] * 10 - margin - 50)
                     .on("end", () => ball.remove());
             }, numRows * 300);
         }
     }
 
-    // Actualizar visualización de columnas
     function updateColumns() {
         const columnSelection = svg.selectAll(".column")
             .data(columns);
@@ -115,7 +111,7 @@
             .append("rect")
             .attr("class", "column")
             .merge(columnSelection)
-            .attr("x", (d, i) => startX + i * columnWidth)  // Posición centrada
+            .attr("x", (d, i) => startX + i * columnWidth)
             .attr("y", d => height - d * 10 - margin - 50)
             .attr("width", columnWidth - 10)
             .attr("height", d => d * 10);
@@ -123,13 +119,29 @@
         columnSelection.exit().remove();
     }
 
-    // Añadir evento al botón para iniciar la caída de bolitas
+    // Función para imprimir los datos exponenciales
+    function imprimirDatosExponenciales() {
+        fetch('/print-datos-exponenciales')
+            .then(response => response.text())
+            .then(data => {
+                alert(data);  // Muestra el mensaje del backend
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Ocurrió un error al imprimir los datos exponenciales.');
+            });
+    }
+
+    // Añadir evento al botón para iniciar la caída de bolitas y también imprimir los datos exponenciales
     document.getElementById("startButton").addEventListener("click", () => {
         d3.interval(() => {
             if (d3.sum(columns) < numBalls) {
                 dropBalls();
             }
         }, 2000);
+
+        // Llamar a la función para imprimir los datos exponenciales
+        imprimirDatosExponenciales();
     });
 </script>
 </body>
