@@ -1,10 +1,4 @@
 https://github.com/ffernandoss/ParteJavaConcurrenteParcial.git
-## TODO
--[] Dividir por paquetes
--[] ver si datos web socket handler se usa o no
--[] escribir main
--[] ver si MenuController se usa o no
--
 
 # Código
 
