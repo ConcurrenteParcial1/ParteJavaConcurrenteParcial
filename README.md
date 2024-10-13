@@ -29,12 +29,19 @@ Se encarga de que se puedan realizar las operaciones de CRUD en la base de datos
 - **printDatos()**: Imprime los datos almacenados en la base de datos.
 - **shutdownExecutor()**: Apaga el `ExecutorService` utilizado para manejar tareas en hilos separados.
 
-## DatosWebSocketHandler
-(Descripción pendiente)
+- Esta compuesta por las anotaciones @Service,@Autowired,@PostConstruct
+- recibe un objeto de tipo DatosRepository y un semaforo
+- Esta compuesto por un constructor el cual cread una nueva pool de hilos de 5 hilos y un semaforo de tamaño 1
+- tiene una Lista de tipo Datos el cual obtiene todos los valores
+- tiene un metodo de tipo Datos encargado de guardar el valor que se manda por parametro
+- tiene un metodo para guardar el csv en la base de datos, este metodo divide el csv en lineas, hace uso de countDownLatch de tamaño uno para gestionar los hilos, luego un hilo entra al semaforo, coge el valor del csv y lo guarda en la base de datos
+- tiene otro metodo que se encarga de impimir los datos, tambien se hace uso de countDownLatch y del semaforo, en este caso se encarga de imrpimir los valores de la base de datos a la terminal
+- tiene un metodo para indicar el llenado y finalizacion
+
 
 ## DemoApplication 
-`DemoApplication` es la clase principal de la aplicación Spring Boot. Sus principales funciones incluyen:
-- **main(String[] args)**: Método principal que inicia la aplicación Spring Boot.
+`DemoApplication` es la clase principal de la aplicación Spring Boot. 
+se encarga de que al compilar aparezca el menu principal con las opciones y todo, ademas hay otro menu en la terminal, si se pulsa 1 aparecen los datos de la normal y si se pulsa 2 de la exponencial, en el front, al pulsar el boton de ver normal, aparte de verse las pelotas ejecutando, en la terminal se ejecuta el print de datos normal, donde se ve que imprime cada hilo, lo mismo ocurre con el exponencial
 
 ## Exponencial
 Esta clase es la entidad en la que se guardarán los datos de la exponencial en MySQL. Está compuesta por las anotaciones `@Entity`, `@Data`, `@Table`, `@Id`, `@GeneratedValue`, `@Column`. En este caso, la entidad se llama `exponencial`, tiene un atributo principal que es el `Id`, el cual tiene la misma función que en la otra entidad, y en esta entidad el otro atributo en vez de `value`, es `valor`. En este caso no se hace uso de los getters y setters.
@@ -46,6 +53,8 @@ Se encarga de gestionar las peticiones que se realizarán a la entidad `exponenc
 `ExponencialService` es una clase de servicio en la aplicación que maneja operaciones relacionadas con datos exponenciales. Sus principales funciones incluyen:
 - **printExponencial()**: Imprime los datos exponenciales.
 - **shutdownExecutor()**: Apaga el `ExecutorService` utilizado para manejar tareas en hilos separados.
+
+- esta clase tiene el mismo funcionamiento que DatosService pero tiene algun cambio, este usa 2 semaforos y 2 pools de hilos
 
 ## MenuController
 `MenuController` es una clase de controlador en la aplicación que maneja las solicitudes HTTP relacionadas con el menú principal. Sus principales funciones incluyen:
