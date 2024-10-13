@@ -1,5 +1,6 @@
-package com.example.demo;
+package com.example.demo.Datos;
 
+import com.example.demo.Exponencial.ExponencialService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 

@@ -1,4 +1,4 @@
-package com.example.demo;
+package com.example.demo.Fabrica;
 
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;

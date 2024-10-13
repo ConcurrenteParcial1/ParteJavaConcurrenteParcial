@@ -1,5 +1,8 @@
-package com.example.demo;
+package com.example.demo.Exponencial;
 
+import com.example.demo.Exponencial.Exponencial;
+import com.example.demo.Exponencial.ExponencialRepository;
+import com.example.demo.Fabrica.CustomThreadFactory;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;

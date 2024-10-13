@@ -1,4 +1,6 @@
-package com.example.demo;
+package com.example.demo.Exponencial;
+
+import com.example.demo.Fabrica.ServiceFactory;
 
 public class ExponencialServiceFactory implements ServiceFactory {
     // Referencia a una instancia de ExponencialService
